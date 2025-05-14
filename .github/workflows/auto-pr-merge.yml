@@ -121,7 +121,7 @@ jobs:
                   
                   const gif = `![celebration gif](${getRandomGif()})`;
 
-                  return `${greeting}\n`;
+                  return `${greeting}\n\n${starRepoMessage}\n\n${nextSteps}\n\n${feedbackMessage}\n\n${gif}`;
                 }
 
                 // Generate the merge message using the getMergeMessage function
@@ -153,7 +153,8 @@ jobs:
               // Handle specific error cases based on status code
               if (error.status === 405 && error.response.data.message === "Pull Request is not mergeable") {
 
-                errMsg = `Hello @${context.payload.pull_request.user.login}, thank you for your pull request. We appreciate your contribution to the project. However, before we can merge it, there is a merge conflict with the target branch.  \n\n`
+                errMsg = `Hello @${context.payload.pull_request.user.login}, thank you for your pull request. We appreciate your contribution to the project. However, before we can merge it, there is a merge conflict with the target branch.  \n\n No worries! You can follow [this guide](https://github.com/firstcontributions/first-contributions/blob/main/docs/additional-material/git_workflow_scenarios/resolving-merge-conflicts.md) on resolving merge conflicts. 
+                Once you've fixed the conflicts and pushed your changes, the repository will check the changes you made and proceed with the merge if everything looks good.  \n\n If you have any questions or need further assistance, don't hesitate to reach out. We're here to help!`
 
               } else if (error.status === 409) {
                 console.error("The pull request has conflicts with the target branch. Resolve the conflicts before merging.");
@@ -193,7 +194,7 @@ jobs:
             // find any comment already made by the bot.                                                                                                    
             const botComment = comments.find(comment => comment.user.login === 'github-actions[bot]')                                                                       
 
-            const body = `Thank you for your pull request. This pull request contains changes in files which requires review. `
+            const body = `Thank you for your pull request. This pull request contains changes in files which requires review. The following files were changed:\n\n  ${process.env.files_changed.trim() ? `\n\n${process.env.files_changed.trim().split(' ').map(file => `- ${file}`).join('\n')}` : ''}`
 
             if (botComment) {
               await github.rest.issues.updateComment({
