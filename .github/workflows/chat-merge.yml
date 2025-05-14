@@ -1,0 +1,39 @@
+name: Auto Merge PRs that only change 2025webi.md
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  automerge:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'main'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Get list of changed files
+        id: files
+        run: |
+          echo "CHANGED_FILES=$(gh pr view ${{ github.event.pull_request.number }} --json files --jq '.files[].path' | sort | uniq)" >> $GITHUB_ENV
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check if only 2025webi.md was changed
+        id: check
+        run: |
+          if [ "$CHANGED_FILES" = "2025webi.md" ]; then
+            echo "ONLY_2025WEBI=true" >> $GITHUB_ENV
+          else
+            echo "ONLY_2025WEBI=false" >> $GITHUB_ENV
+          fi
+
+      - name: Auto-merge PR
+        if: env.ONLY_2025WEBI == 'true'
+        run: gh pr merge ${{ github.event.pull_request.number }} --merge --admin
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
